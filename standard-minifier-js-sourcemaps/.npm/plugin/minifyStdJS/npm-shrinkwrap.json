@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "concat-with-sourcemaps": {
+      "version": "1.0.4",
+      "resolved": "https://registry.npmjs.org/concat-with-sourcemaps/-/concat-with-sourcemaps-1.0.4.tgz",
+      "from": "concat-with-sourcemaps@1.0.4"
+    },
+    "source-map": {
+      "version": "0.5.6",
+      "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.5.6.tgz",
+      "from": "source-map@>=0.5.1 <0.6.0"
+    }
+  }
+}
