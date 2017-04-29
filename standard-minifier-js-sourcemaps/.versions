@@ -1,0 +1,12 @@
+babel-compiler@6.18.2
+ecmascript-runtime@0.3.15
+meteor@1.6.1
+modules@0.8.2
+modules-runtime@0.7.10
+package-version-parser@3.0.10
+promise@0.8.8
+sanjo:meteor-files-helpers@1.2.0_1
+sanjo:meteor-version@1.0.0
+underscore@1.0.10
+zodern:minifier-js@2.0.0
+zodern:standard-minifier-js@2.0.0

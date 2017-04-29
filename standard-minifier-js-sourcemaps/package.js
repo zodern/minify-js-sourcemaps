@@ -1,13 +1,14 @@
 Package.describe({
   name: 'zodern:standard-minifier-js',
   version: '2.0.0',
-  summary: 'Standard javascript minifiers used with Meteor apps by default.',
-  documentation: 'README.md'
+  summary: 'Javascript minifier that creates production sourcemap',
+  documentation: 'README.md',
+  git: 'https://github.com/zodern/minify-js-sourcemaps.git'
 });
 
 Package.registerBuildPlugin({
   name: 'minifyStdJS',
-  use: ['sanjo:meteor-files-helpers', 'zodern:minifier-js'],
+  use: ['sanjo:meteor-files-helpers@1.2.0_1', 'zodern:minifier-js@2.0.0'],
   sources: ['plugin/minify-js.js'],
   npmDependencies: {
   'concat-with-sourcemaps': '1.0.4'
