@@ -24,4 +24,3 @@ meteor add zodern:hide-production-sourcemaps
 Known problems:
 - Babili (used when uglify failes) is not setup to create sourcemaps yet
 - Minifying takes a lot longer
-- Using `zodern:hide-production-sourcemaps` does not completely block access to sourcemaps

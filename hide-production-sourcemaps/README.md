@@ -1,8 +1,10 @@
-Hides sourcemaps in production. It does this by preventing the Webapp package from adding the `x-sourcemap` header to javascript files. `zodern:hide-production-sourcemaps` only runs in production.
-
-Please Note: the sourcemaps are still accessible by their url.
+Prevents access to source maps in production and any files in your `public` folder with the `.map` file extension.
 
 Install with
 ```
 meteor add zodern:hide-production-sourcemaps
 ```
+
+`zodern:hide-production-sourcemaps` only runs in production.
+
+It works by preventing the Webapp package from adding the `x-sourcemap` header to javascript files, and removing the source maps from Webapp's list of static files. 
