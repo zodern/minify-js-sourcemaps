@@ -1,8 +1,27 @@
-Install with:
+`zodern:standard-minifier-js` is a fork of `standard-minifier-js`, with two changes:
+1) The minified js file always has the same name: `app.js`
+2) It creates a sourcemap for it
+
+First, you need to uninstall `standard-minifier-js`
+```
+meteor remove standard-minifier-js
+```
+
+Then install this fork with:
 ```
 meteor add zodern:standard-minifier-js
 ```
 
-Creates a production sourcemap while minifing. It is saved in `.production.min.js.map` in your app's root folder.
+The sourcemap is saved in the bundle from `meteor build` or `meteor --production` at `programs/web.browser/app.js.map`. Teh bundle for `meteor --production` is in `.meteor/local/build`.
 
-If you set the environment variable `INLINE_SOURCE_MAPS=true`, it will also add inlin sourcemaps when running in production mode. Do not use inline sourcemaps in production as it greatly increases the size of the javascript file.
+With this package, the main javascript file is always named `app.js`.
+
+If you want to hide the sourcemaps from your users, you can add the `zodern:hide-production-sourcemaps` package.
+```
+meteor add zodern:hide-production-sourcemaps
+```
+
+Known problems:
+- Babili (used when uglify failes) is not setup to create sourcemaps yet
+- Minifying takes a lot longer
+- Using `zodern:hide-production-sourcemaps` does not completely block access to sourcemaps

@@ -18,7 +18,6 @@ function MeteorBabelMinifier() {}
 
 MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
   var mode = options.minifyMode;
-
   // don't minify anything for development
   if (mode === 'development') {
     files.forEach(function(file) {
@@ -119,7 +118,6 @@ MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
     }
   }
 
-  var allJs = '';
   var minifiedResults = [];
   var concat = new Concat(true, 'app.js', '\n\n');
 
@@ -153,26 +151,13 @@ MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
     }
     Plugin.nudge();
   });
+
   minifiedResults.forEach(function (result) {
     concat.add(result.file, result.code, result.map);
+    Plugin.nudge();
   });
 
-  allJs += concat.content.toString();
-  if (
-    process.env.INLINE_SOURCE_MAPS &&
-    JSON.parse(process.env.INLINE_SOURCE_MAPS)
-  ) {
-    allJs += '\n';
-    // allJs += `//# sourceMappingURL=data:application/json;base64,${new Buffer(concat.sourceMap).toString('base64')}`;
-    allJs += '//# sourceMappingURL=http://localhost:9080/.production.min.js.map'
-  }
-  fs.writeFileSync(
-    Plugin.convertToOSPath(Plugin.convertToStandardPath(MeteorFilesHelpers.getAppPath()) +
-      '/.production.min.js.map'),
-    concat.sourceMap
-  );
-
   if (files.length) {
-    files[0].addJavaScript({ data: allJs });
+    files[0].addJavaScript({ data: concat.content.toString(), sourceMap: concat.sourceMap, path: 'app.js' });
   }
 };
