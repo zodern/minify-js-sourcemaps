@@ -12,7 +12,7 @@ Package.describe({
 });
 
 Package.onUse(function(api) {
-  api.use('webapp');
+  api.use('webapp@1.3.14');
   api.addFiles('hide-production-sourcemaps.js', 'server');
 });
 

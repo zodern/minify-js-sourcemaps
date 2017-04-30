@@ -9,4 +9,4 @@ sanjo:meteor-files-helpers@1.2.0_1
 sanjo:meteor-version@1.0.0
 underscore@1.0.10
 zodern:minifier-js@2.0.0
-zodern:standard-minifier-js@2.0.0
+zodern:standard-minifier-js@2.1.0
