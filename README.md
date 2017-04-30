@@ -12,11 +12,11 @@ Then install this fork with:
 meteor add zodern:standard-minifier-js
 ```
 
-The sourcemap is saved in the bundle from `meteor build` or `meteor --production` at `programs/web.browser/app.js.map`. Teh bundle for `meteor --production` is in `.meteor/local/build`.
+The sourcemap is saved in the bundle from `meteor build` or `meteor --production` at `programs/web.browser/app.js.map`. The bundle from `meteor --production` is in `.meteor/local/build`.
 
 With this package, the main javascript file is always named `app.js`.
 
-If you want to hide the sourcemaps from your users, you can add the `zodern:hide-production-sourcemaps` package.
+If you want to prevent access to the sourcemaps, you can add the `zodern:hide-production-sourcemaps` package.
 ```
 meteor add zodern:hide-production-sourcemaps
 ```
