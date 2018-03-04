@@ -1,8 +1,9 @@
 var uglify;
 
-meteorJsMinify = function(source, sourcemap) {
+meteorJsMinify = function(source, sourcemap = {}, path) {
   var result = {};
   uglify = uglify || Npm.require('uglify-js');
+  var NODE_ENV = process.env.NODE_ENV || "development";
 
   try {
   var minified = uglify.minify(source, {
@@ -10,9 +11,12 @@ meteorJsMinify = function(source, sourcemap) {
       compress: {
         drop_debugger: false,
         unused: false,
-        dead_code: false
+        dead_code: true,
+        global_defs: {
+          "process.env.NODE_ENV": NODE_ENV
+        }
       },
-      outFileName: 'app.js',
+      outFileName: path || 'app.js',
       outSourceMap: "production.min.map",
       sourceMapUrl: false,
       // Some sourcemaps are objects, and some are strings

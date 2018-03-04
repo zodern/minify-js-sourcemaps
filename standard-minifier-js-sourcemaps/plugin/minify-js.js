@@ -1,6 +1,4 @@
-// Sourcemap file created with Plugin.fs.writeFile during "meteor build" had no content.
-// Using built-in fs module did.
-const fs = Npm.require('fs');
+import { extractModuleSizesTree } from "./stats.js";
 
 Plugin.registerMinifier(
   {
@@ -118,10 +116,23 @@ MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
     }
   }
 
-  var minifiedResults = [];
-  var concat = new Concat(true, 'app.js', '\n\n');
+  const minifiedResults = [];
+  const toBeAdded = {
+    data: '',
+    stats: Object.create(null),
+    path: 'app.js'
+  };
+  
+  if (
+    files.length === 1 &&
+    files[0].getPathInBundle().indexOf('dynamic/') === 0
+  ) {
+    toBeAdded.path = files[0].getPathInBundle();
+  }
+  
+  var concat = new Concat(true, toBeAdded.path, '\n\n');
 
-  files.forEach(function(file) {
+  files.forEach(file => {
     // Don't reminify *.min.js.
     // FIXME: this still minifies .min.js app files since they were all combined into app.js
     if (/\.min\.js$/.test(file.getPathInBundle())) {
@@ -130,16 +141,19 @@ MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
         map: file.getSourceMap()
       });
     } else {
+      var minified;
+
       try {
-        var minified = meteorJsMinify(
+        minified = meteorJsMinify(
           file.getContentsAsString(),
-          file.getSourceMap()
+          file.getSourceMap(),
+          toBeAdded.path
         );
-        minifiedResults.push({
-          file: file.getPathInBundle(),
-          code: minified.code,
-          map: minified.sourcemap
-        });
+
+        if (!(minified && typeof minified.code === "string")) {
+          throw new Error();
+        }
+
       } catch (err) {
         var filePath = file.getPathInBundle();
 
@@ -148,6 +162,21 @@ MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
         err.message += ' while minifying ' + filePath;
         throw err;
       }
+
+      const tree = extractModuleSizesTree(minified.code);
+      if (tree) {
+        toBeAdded.stats[file.getPathInBundle()] =
+          [Buffer.byteLength(minified.code), tree];
+      } else {
+        toBeAdded.stats[file.getPathInBundle()] =
+          Buffer.byteLength(minified.code);
+      }
+
+      minifiedResults.push({
+        file: file.getPathInBundle(),
+        code: minified.code,
+        map: minified.sourcemap
+      });
     }
     Plugin.nudge();
   });
@@ -158,6 +187,8 @@ MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
   });
 
   if (files.length) {
-    files[0].addJavaScript({ data: concat.content.toString(), sourceMap: concat.sourceMap, path: 'app.js' });
+    toBeAdded.data = concat.content.toString();
+    toBeAdded.sourceMap = concat.sourceMap;
+    files[0].addJavaScript(toBeAdded);
   }
 };
