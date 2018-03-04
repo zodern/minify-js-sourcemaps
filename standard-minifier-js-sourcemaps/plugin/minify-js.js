@@ -1,4 +1,4 @@
-import { extractModuleSizesTree } from "./stats.js";
+// import { extractModuleSizesTree } from "./stats.js";
 
 Plugin.registerMinifier(
   {
@@ -163,14 +163,14 @@ MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
         throw err;
       }
 
-      const tree = extractModuleSizesTree(minified.code);
-      if (tree) {
-        toBeAdded.stats[file.getPathInBundle()] =
-          [Buffer.byteLength(minified.code), tree];
-      } else {
-        toBeAdded.stats[file.getPathInBundle()] =
-          Buffer.byteLength(minified.code);
-      }
+      // const tree = extractModuleSizesTree(minified.code);
+      // if (tree) {
+      //   toBeAdded.stats[file.getPathInBundle()] =
+      //     [Buffer.byteLength(minified.code), tree];
+      // } else {
+      //   toBeAdded.stats[file.getPathInBundle()] =
+      //     Buffer.byteLength(minified.code);
+      // }
 
       minifiedResults.push({
         file: file.getPathInBundle(),
