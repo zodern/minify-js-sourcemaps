@@ -1,13 +1,12 @@
 var uglify;
 
-meteorJsMinify = function(source, sourcemap = {}, path) {
+meteorJsMinify = function (source, sourcemap = {}, path) {
   var result = {};
-  uglify = uglify || Npm.require('uglify-js');
+  uglify = uglify || Npm.require('uglify-es');
   var NODE_ENV = process.env.NODE_ENV || "development";
 
   try {
-  var minified = uglify.minify(source, {
-      fromString: true,
+    var minified = uglify.minify(source, {
       compress: {
         drop_debugger: false,
         unused: false,
@@ -16,16 +15,14 @@ meteorJsMinify = function(source, sourcemap = {}, path) {
           "process.env.NODE_ENV": NODE_ENV
         }
       },
-      outFileName: path || 'app.js',
-      outSourceMap: "production.min.map",
-      sourceMapUrl: false,
-      // Some sourcemaps are objects, and some are strings
-      inSourceMap: typeof sourcemap === 'object' ? sourcemap : JSON.parse(sourcemap)
+      sourceMap: {
+        filename: path || 'app.js',
+        content: sourcemap
+      }
     });
     result.code = minified.code;
     result.sourcemap = minified.map;
   } catch (e) {
-    console.log(e);
     // TODO: create sourcemaps when using babili
 
     // Although Babel.minify can handle a wider variety of ECMAScript
