@@ -10,14 +10,14 @@ Package.registerBuildPlugin({
   name: 'minifyStdJS',
   use: [
     'zodern:minifier-js@2.0.0',
-    // 'babel-compiler',
+    'babel-compiler',
     'ecmascript@0.8.0'
   ],
   sources: [
-    'plugin/minify-js.js'
-    // 'plugin/stats.js',
-    // 'plugin/visitor.js',
-    // 'plugin/utils.js',
+    'plugin/minify-js.js',
+    'plugin/stats.js',
+    'plugin/visitor.js',
+    'plugin/utils.js',
   ],
   npmDependencies: {
     'concat-with-sourcemaps': '1.0.4'
