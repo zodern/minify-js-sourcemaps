@@ -1,6 +1,6 @@
 Package.describe({
   name: 'zodern:standard-minifier-js',
-  version: '2.2.0',
+  version: '2.3.0',
   summary: 'Javascript minifier that creates production sourcemap',
   documentation: '../readme.md',
   git: 'https://github.com/zodern/minify-js-sourcemaps.git'
@@ -10,7 +10,7 @@ Package.registerBuildPlugin({
   name: 'minifyStdJS',
   use: [
     'zodern:minifier-js@2.0.0',
-    'babel-compiler',
+    'babel-compiler@6.18.2',
     'ecmascript@0.8.0'
   ],
   sources: [
