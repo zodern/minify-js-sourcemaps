@@ -11,7 +11,7 @@ Npm.depends({
 });
 
 Package.onUse(function (api) {
-  api.use('babel-compiler@6.18.2');
+  api.use('babel-compiler@6.18.2 || 7.0.0');
   api.export(['meteorJsMinify']);
   api.addFiles(['plugin/minify-js.js'], 'server');
 });

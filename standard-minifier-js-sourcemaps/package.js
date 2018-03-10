@@ -10,7 +10,7 @@ Package.registerBuildPlugin({
   name: 'minifyStdJS',
   use: [
     'zodern:minifier-js@2.0.0',
-    'babel-compiler@6.18.2',
+    'babel-compiler@6.18.2 || 7.0.0',
     'ecmascript@0.8.0'
   ],
   sources: [
