@@ -1,7 +1,7 @@
 Package.describe({
   name: 'zodern:minifier-js',
   summary: "JavaScript minifier",
-  version: "2.1.0",
+  version: "2.2.0",
   documentation: null,
   git: "https://github.com/zodern/minify-js-sourcemaps.git"
 });
