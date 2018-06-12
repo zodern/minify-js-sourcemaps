@@ -36,12 +36,18 @@ meteorJsMinify = function (source, sourcemap = {}, path) {
         new Error("unknown uglify.minify failure");
     }
   } catch (e) {
-    // TODO: create sourcemaps when using babili
-
     // Although Babel.minify can handle a wider variety of ECMAScript
     // 2015+ syntax, it is substantially slower than UglifyJS, so we use
     // it only as a fallback.
-    result.code = Babel.minify(source).code;
+    var babelResult = Babel.minify(source, {
+      sourceMaps: true,
+      inputSourceMap: sourcemap,
+      sourceFileName: path
+    });
+
+    result.code = babelResult.code;
+    result.sourcemap = babelResult.map;
+    result.minifier = 'babel-minify';
   }
 
   return result;
