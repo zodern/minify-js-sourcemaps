@@ -2,11 +2,12 @@ var uglify;
 
 meteorJsMinify = function (source, sourcemap = {}, path) {
   var result = {};
-  uglify = uglify || Npm.require('uglify-es');
   var NODE_ENV = process.env.NODE_ENV || "development";
 
+  uglify = uglify || Npm.require('uglify-es');
+
   try {
-    var minified = uglify.minify(source, {
+    var uglifyResult = uglify.minify(source, {
       compress: {
         drop_debugger: false,
         unused: false,
@@ -20,8 +21,15 @@ meteorJsMinify = function (source, sourcemap = {}, path) {
         content: sourcemap
       }
     });
-    result.code = minified.code;
-    result.sourcemap = minified.map;
+
+    if (typeof uglifyResult.code === "string") {
+      result.code = uglifyResult.code;
+      result.sourcemap = uglifyResult.map;
+      result.minifier = 'uglify-es';
+    } else {
+      throw uglifyResult.error ||
+        new Error("unknown uglify.minify failure");
+    }
   } catch (e) {
     // TODO: create sourcemaps when using babili
 
