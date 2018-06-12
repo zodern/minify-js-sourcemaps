@@ -16,6 +16,11 @@ meteorJsMinify = function (source, sourcemap = {}, path) {
           "process.env.NODE_ENV": NODE_ENV
         }
       },
+      mangle: {
+        // Fix issue meteor/meteor#9866, as explained in this comment:
+        // https://github.com/mishoo/UglifyJS2/issues/1753#issuecomment-324814782
+        safari10: true
+      },
       sourceMap: {
         filename: path || 'app.js',
         content: sourcemap
