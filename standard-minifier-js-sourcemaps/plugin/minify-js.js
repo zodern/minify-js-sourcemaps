@@ -1,28 +1,26 @@
 import { extractModuleSizesTree } from "./stats.js";
-
-Plugin.registerMinifier(
-  {
-    extensions: ['js'],
-    archMatching: 'web'
-  },
-  function() {
-    var minifier = new MeteorBabelMinifier();
-    return minifier;
-  }
-);
-
 var Concat = Npm.require('concat-with-sourcemaps');
-function MeteorBabelMinifier() {}
+
+Plugin.registerMinifier({
+  extensions: ['js'],
+  archMatching: 'web'
+}, function () {
+  var minifier = new MeteorBabelMinifier();
+  return minifier;
+});
+
+function MeteorBabelMinifier () {};
 
 MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
   var mode = options.minifyMode;
+
   // don't minify anything for development
   if (mode === 'development') {
-    files.forEach(function(file) {
+    files.forEach(function (file) {
       file.addJavaScript({
         data: file.getContentsAsBuffer(),
         sourceMap: file.getSourceMap(),
-        path: file.getPathInBundle()
+        path: file.getPathInBundle(),
       });
     });
     return;
@@ -87,27 +85,24 @@ MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
 
       // If the line is a boatload of slashes, we're in the right place.
       if (/^\/\/\/{6,}$/.test(sourceLine)) {
+
         // If 4 lines back is the same exact line, we've found the framing.
         if (contents[c - 4] === sourceLine) {
+
           // So in that case, 2 lines back is the file path.
           var parseErrorPath = contents[c - 2]
             .substring(3)
-            .replace(/\s+\/\//, '');
+            .replace(/\s+\/\//, "");
 
           var minError = new Error(
-            'Babili minification error ' +
-              'within ' +
-              file.getPathInBundle() +
-              ':\n' +
-              parseErrorPath +
-              (lineSrcLineNumber ? ', line ' + lineSrcLineNumber : '') +
-              '\n' +
-              '\n' +
-              lineErrorMessage +
-              ':\n' +
-              '\n' +
-              lineSrcLineContent +
-              '\n'
+            "Babili minification error " +
+            "within " + file.getPathInBundle() + ":\n" +
+            parseErrorPath +
+            (lineSrcLineNumber ? ", line " + lineSrcLineNumber : "") + "\n" +
+            "\n" +
+            lineErrorMessage + ":\n" +
+            "\n" +
+            lineSrcLineContent + "\n"
           );
 
           throw minError;
@@ -118,7 +113,7 @@ MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
 
   const minifiedResults = [];
   const toBeAdded = {
-    data: '',
+    data: "",
     stats: Object.create(null),
     path: 'app.js'
   };
@@ -159,7 +154,7 @@ MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
 
         maybeThrowMinifyErrorBySourceFile(err, file);
 
-        err.message += ' while minifying ' + filePath;
+        err.message += " while minifying " + filePath;
         throw err;
       }
 
