@@ -1,11 +1,18 @@
-var fileInfo = WebAppInternals.staticFiles;
-Object.keys(WebAppInternals.staticFilesByArch).forEach(function(arch) {
-  const staticFiles = WebAppInternals.staticFilesByArch[arch];
-    Object.keys(staticFiles).forEach(function(key) {
-      if (key.endsWith(".map")) {
-        delete staticFiles[key];
-        return;
-      }
-      staticFiles[key].sourceMapUrl = false;
+const hideSourceMaps = (staticFiles) => {
+  Object.keys(staticFiles).forEach((key) => {
+    if (key.endsWith(".map")) {
+      delete staticFiles[key];
+      return;
+    }
+    staticFiles[key].sourceMapUrl = false;
   });
-});
+}
+
+if (WebAppInternals.staticFilesByArch) {
+  Object
+    .keys(WebAppInternals.staticFilesByArch)
+    .forEach((arch) => hideSourceMaps(WebAppInternals.staticFilesByArch[arch]));
+}
+if (WebAppInternals.staticFiles) {
+  hideSourceMaps(WebAppInternals.staticFiles);
+}
