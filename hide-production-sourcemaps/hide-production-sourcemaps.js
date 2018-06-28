@@ -1,8 +1,18 @@
-var fileInfo = WebAppInternals.staticFiles;
-Object.keys(WebAppInternals.staticFiles).forEach(function(key) {
-  if (key.indexOf(".map") === key.length - ".map".length) {
-    delete WebAppInternals.staticFiles[key];
-    return;
-  }
-  WebAppInternals.staticFiles[key].sourceMapUrl = false;
-});
+const hideSourceMaps = (staticFiles) => {
+  Object.keys(staticFiles).forEach((key) => {
+    if (key.endsWith(".map")) {
+      delete staticFiles[key];
+      return;
+    }
+    staticFiles[key].sourceMapUrl = false;
+  });
+}
+
+if (WebAppInternals.staticFilesByArch) {
+  Object
+    .keys(WebAppInternals.staticFilesByArch)
+    .forEach((arch) => hideSourceMaps(WebAppInternals.staticFilesByArch[arch]));
+}
+if (WebAppInternals.staticFiles) {
+  hideSourceMaps(WebAppInternals.staticFiles);
+}
