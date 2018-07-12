@@ -1,14 +1,14 @@
-var uglify;
+var terser;
 
 meteorJsMinify = function (source, sourcemap, path) {
   var result = {};
   var NODE_ENV = process.env.NODE_ENV || "development";
   var sourcemap = sourcemap || undefined;
 
-  uglify = uglify || Npm.require('uglify-es');
+  terser = terser || Npm.require('terser');
 
   try {
-    var uglifyResult = uglify.minify(source, {
+    var terserResult = terser.minify(source, {
       compress: {
         drop_debugger: false,
         unused: false,
@@ -28,18 +28,18 @@ meteorJsMinify = function (source, sourcemap, path) {
       }
     });
 
-    if (typeof uglifyResult.code === "string") {
-      result.code = uglifyResult.code;
-      result.sourcemap = uglifyResult.map;
-      result.minifier = 'uglify-es';
+    if (typeof terserResult.code === "string") {
+      result.code = terserResult.code;
+      result.sourcemap = terserResult.map;
+      result.minifier = 'terser';
     } else {
-      throw uglifyResult.error ||
-        new Error("unknown uglify.minify failure");
+      throw terserResult.error ||
+        new Error("unknown terser.minify failure");
     }
   } catch (e) {
     // Although Babel.minify can handle a wider variety of ECMAScript
-    // 2015+ syntax, it is substantially slower than UglifyJS, so we use
-    // it only as a fallback.
+    // 2015+ syntax, it is substantially slower than UglifyJS/terser, so
+    // we use it only as a fallback.
     var babelResult = Babel.minify(source, {
       sourceMaps: true,
       inputSourceMap: sourcemap,

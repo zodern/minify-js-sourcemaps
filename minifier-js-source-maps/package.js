@@ -7,7 +7,7 @@ Package.describe({
 });
 
 Npm.depends({
-  "uglify-es": "3.3.9"
+  "terser": "3.7.6"
 });
 
 Package.onUse(function (api) {
