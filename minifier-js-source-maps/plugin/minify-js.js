@@ -1,8 +1,9 @@
 var uglify;
 
-meteorJsMinify = function (source, sourcemap = {}, path) {
+meteorJsMinify = function (source, sourcemap, path) {
   var result = {};
   var NODE_ENV = process.env.NODE_ENV || "development";
+  var sourcemap = sourcemap || undefined;
 
   uglify = uglify || Npm.require('uglify-es');
 
