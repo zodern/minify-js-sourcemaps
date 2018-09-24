@@ -11,7 +11,7 @@ Package.registerBuildPlugin({
   use: [
     'zodern:minifier-js@2.5.0',
     'babel-compiler@6.18.2 || 7.0.0',
-    'ecmascript@0.8.0'
+    'ecmascript@0.7.0'
   ],
   sources: [
     'plugin/minify-js.js',

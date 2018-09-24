@@ -117,6 +117,8 @@ MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
     stats: Object.create(null)
   };
 
+  // The stats code requires node 8 or newer
+  var statsEnabled = parseInt(process.versions.node.split('.')[0], 10) > 4;
   var concat = new Concat(true, '', '\n\n');
 
   files.forEach(file => {
@@ -150,13 +152,15 @@ MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
         throw err;
       }
 
-      const tree = extractModuleSizesTree(minified.code);
-      if (tree) {
-        toBeAdded.stats[file.getPathInBundle()] =
-          [Buffer.byteLength(minified.code), tree];
-      } else {
-        toBeAdded.stats[file.getPathInBundle()] =
-          Buffer.byteLength(minified.code);
+      if (statsEnabled) {
+        const tree = extractModuleSizesTree(minified.code);
+        if (tree) {
+          toBeAdded.stats[file.getPathInBundle()] =
+            [Buffer.byteLength(minified.code), tree];
+        } else {
+          toBeAdded.stats[file.getPathInBundle()] =
+            Buffer.byteLength(minified.code);
+        }
       }
 
       minifiedResults.push({
