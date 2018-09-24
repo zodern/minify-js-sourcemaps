@@ -8,7 +8,9 @@ meteorJsMinify = function (source, sourcemap, path) {
   terser = terser || Npm.require('terser');
 
   try {
-    var terserResult = terser.minify(source, {
+    var terserResult = terser.minify({
+     [path]: source 
+    }, {
       compress: {
         drop_debugger: false,
         unused: false,
@@ -23,7 +25,6 @@ meteorJsMinify = function (source, sourcemap, path) {
         safari10: true
       },
       sourceMap: {
-        filename: path || 'app.js',
         content: sourcemap
       }
     });

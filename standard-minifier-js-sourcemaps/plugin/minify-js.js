@@ -117,14 +117,7 @@ MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
     stats: Object.create(null)
   };
 
-  if (
-    files.length === 1 &&
-    files[0].getPathInBundle().indexOf('dynamic/') === 0
-  ) {
-    toBeAdded.path = files[0].getPathInBundle();
-  }
-
-  var concat = new Concat(true, toBeAdded.path || 'app.js', '\n\n');
+  var concat = new Concat(true, '', '\n\n');
 
   files.forEach(file => {
     // Don't reminify *.min.js.
@@ -141,7 +134,7 @@ MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
         minified = meteorJsMinify(
           file.getContentsAsString(),
           file.getSourceMap(),
-          toBeAdded.path || 'app.js'
+          file.getPathInBundle()
         );
 
         if (!(minified && typeof minified.code === "string")) {
