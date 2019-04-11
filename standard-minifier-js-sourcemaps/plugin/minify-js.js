@@ -1,5 +1,6 @@
 import { extractModuleSizesTree } from "./stats.js";
 var Concat = Npm.require('concat-with-sourcemaps');
+import { CachingMinifier } from "meteor/zodern:caching-minifier"
 
 Plugin.registerMinifier({
   extensions: ['js'],
@@ -9,7 +10,20 @@ Plugin.registerMinifier({
   return minifier;
 });
 
-function MeteorBabelMinifier () {};
+class MeteorBabelMinifier extends CachingMinifier {
+  constructor() {
+    super({
+      minifierName: 'babel-minifier'
+    })
+  }
+  minifyOneFile(file) {
+    return meteorJsMinify(
+      file.getContentsAsString(),
+      file.getSourceMap(),
+      file.getPathInBundle()
+    );
+  }
+}
 
 MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
   var mode = options.minifyMode;
@@ -133,11 +147,7 @@ MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
       var minified;
 
       try {
-        minified = meteorJsMinify(
-          file.getContentsAsString(),
-          file.getSourceMap(),
-          file.getPathInBundle()
-        );
+        minified = this.minifyFile(file);
 
         if (!(minified && typeof minified.code === "string")) {
           throw new Error();
