@@ -12,7 +12,7 @@ Package.registerBuildPlugin({
     'zodern:minifier-js@3.0.0',
     'babel-compiler@6.18.2 || 7.0.0',
     'ecmascript@0.7.0',
-    'zodern:caching-minifier@0.1.0'
+    'zodern:caching-minifier@0.1.1'
   ],
   sources: [
     'plugin/minify-js.js',
