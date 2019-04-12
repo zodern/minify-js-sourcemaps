@@ -1,6 +1,6 @@
 Package.describe({
   name: 'zodern:caching-minifier',
-  version: '0.1.0',
+  version: '0.1.1',
   summary: 'An easy way to make minifier plugins cache',
   documentation: './readme.md',
   git: 'https://github.com/zodern/minify-js-sourcemaps.git'
