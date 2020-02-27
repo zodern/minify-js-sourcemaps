@@ -18,11 +18,17 @@ export class CachingMinifier extends CachingCompiler {
     return result.code ? result.code.length + sourceMapSize : 0;
   }
 
-  minifyFile (file) {
-    const key = this._deepHash(file.getSourceHash());
+  minifyFile(file) {
+    // The hash meteor provides seems to change more than
+    // necessary, so we create our own here based on only what 
+    // affects the minified output
+    const key = this._deepHash({
+      content: file.getContentsAsString(),
+      sourcemap: JSON.stringify(file.getSourceMap()),
+    });
     let result = this._cache.get(key);
     let source = 'memory';
-  
+
     if (!result) {
       result = this._readCache(key);
       source = 'file';
