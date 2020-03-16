@@ -4,6 +4,24 @@ import { CachingMinifier } from "meteor/zodern:caching-minifier"
 
 const STATS_DISABLED = process.env.DISABLE_CLIENT_STATS === 'true'
 
+let Profile;
+
+try {
+  var path = Npm.require("path");
+  var mainModule = global.process.mainModule;
+
+  var absPath = mainModule.filename.split(path.sep).slice(0, -1).
+    join(path.sep);
+  var require = function (filePath) {
+    return mainModule.require(path.resolve(absPath, filePath));
+  };
+  Profile = require("./tool-env/profile").Profile;
+} catch (e) {
+  console.log('failed to load Profiler', e);
+  Profile = function (label, func) { return function () {return  func.apply(this, arguments);} };
+  Profile.time = function (label, func) { return func(); };
+}
+
 Plugin.registerMinifier({
   extensions: ['js'],
   archMatching: 'web'
@@ -27,7 +45,7 @@ class MeteorBabelMinifier extends CachingMinifier {
   }
 }
 
-MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
+MeteorBabelMinifier.prototype.processFilesForBundle = Profile('processFilesForBundle', function(files, options) {
   var mode = options.minifyMode;
 
   // don't minify anything for development
@@ -147,9 +165,18 @@ MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
       });
     } else {
       var minified;
+      let label = 'minify file'
+      if (file.getPathInBundle() === 'app/app.js') {
+        label = 'minify app/app.js'
+      }
+      if (file.getPathInBundle() === 'packages/modules.js') {
+        label = 'minify packages/modules.js'
+      }
 
       try {
-        minified = this.minifyFile(file);
+        Profile.time(label, () => {
+          minified = this.minifyFile(file);
+        });
 
         if (!(minified && typeof minified.code === "string")) {
           throw new Error();
@@ -165,7 +192,11 @@ MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
       }
 
       if (statsEnabled) {
-        const tree = extractModuleSizesTree(minified.code);
+        let tree;
+        Profile.time('extractModuleSizesTree', () => {
+          tree = extractModuleSizesTree(minified.code);
+        });
+
         if (tree) {
           toBeAdded.stats[file.getPathInBundle()] =
             [Buffer.byteLength(minified.code), tree];
@@ -184,14 +215,18 @@ MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
     Plugin.nudge();
   });
 
-  minifiedResults.forEach(function (result) {
-    concat.add(result.file, result.code, result.map);
-    Plugin.nudge();
-  });
+  Profile.time('concat', () => {
+    minifiedResults.forEach(function (result) {
+      concat.add(result.file, result.code, result.map);
+      Plugin.nudge();
+    });
+  })
 
   if (files.length) {
-    toBeAdded.data = concat.content.toString();
-    toBeAdded.sourceMap = concat.sourceMap;
-    files[0].addJavaScript(toBeAdded);
+    Profile.time('addJavaScript', () => {
+      toBeAdded.data = concat.content.toString();
+      toBeAdded.sourceMap = concat.sourceMap;
+      files[0].addJavaScript(toBeAdded);
+    })
   }
-};
+});
