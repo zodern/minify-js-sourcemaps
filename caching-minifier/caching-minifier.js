@@ -81,30 +81,21 @@ export class CachingMinifier extends CachingCompiler {
     throw new Error('CachingMinifier subclass should implement minifyOneFile!');
   }
 
-  // Overrides method to log errors
+  // Overrides method to log errors and
+  // to use the sync fs calls since Meteor 1.8.2
+  // changed the async versions to be aliases to the sync version. 
   //
   // We want to write the file atomically. But we also don't want to block
   // processing on the file write.
   _writeFileAsync(filename, contents) {
     const tempFilename = filename + '.tmp.' + Random.id();
-    if (this._cacheDebugEnabled) {
-      // Write cache file synchronously when cache debugging enabled.
-      try {
-        fs.writeFileSync(tempFilename, contents);
-        fs.renameSync(tempFilename, filename);
-      } catch (e) {
-        this._cacheDebug(e)
-        // ignore errors, it's just a cache
-      }
-    } else {
-      fs.writeFile(tempFilename, contents, writeError => {
-        if (writeError) return;
-        try {
-          fs.renameSync(tempFilename, filename);
-        } catch (renameError) {
-          // ignore errors, it's just a cache
-        }
-      });
+    // Write cache file synchronously when cache debugging enabled.
+    try {
+      fs.writeFileSync(tempFilename, contents);
+      fs.renameSync(tempFilename, filename);
+    } catch (e) {
+      this._cacheDebug(e)
+      // ignore errors, it's just a cache
     }
   }
 }
