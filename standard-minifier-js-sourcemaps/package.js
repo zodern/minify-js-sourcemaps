@@ -7,7 +7,7 @@ Package.describe({
 });
 
 Package.registerBuildPlugin({
-  name: 'minifyStdJS',
+  name: 'fastMinifier',
   use: [
     'zodern:minifier-js@3.0.0',
     'babel-compiler@6.18.2 || 7.0.0',
