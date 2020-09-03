@@ -1,5 +1,8 @@
 import { Random } from 'meteor/random';
+const LRU = Npm.require('lru-cache');
+
 const fs = Plugin.fs;
+const path = Plugin.path;
 
 if (typeof Profile === 'undefined') {
   var Profile = function (label, func) {
@@ -12,26 +15,25 @@ if (typeof Profile === 'undefined') {
   }
 }
 
-export class CachingMinifier extends CachingCompiler {
+const CachingCompilerBase = Object.getPrototypeOf(CachingCompiler);
+
+export class CachingMinifier extends CachingCompilerBase {
   constructor({
     minifierName,
     defaultCacheSize,
   }) {
     super({ compilerName: minifierName, defaultCacheSize });
+
+    // Maps from a hashed cache key to the minify result.
+    this._cache = new LRU({
+      max: this._cacheSize,
+      length: (value) => this.compileResultSize(value),
+    });
   }
 
-  compileResultSize(result) {
-    let sourceMapSize = 0;
-
-    if (typeof result.sourcemap === 'string') {
-      sourceMapSize = result.sourcemap.length;
-    } else {
-      sourceMapSize = this.sourceMapSize(result.sourcemap);
-    }
-
-    return result.code ? result.code.length + sourceMapSize : 0;
-  }
-
+  // Your subclass should call minifyFile for each file that
+  // is in the bundle. It takes care of caching and will
+  // call minifyOneFile as needed.
   minifyFile(file) {
     // The hash meteor provides seems to change more than
     // necessary, so we create our own here based on only what 
@@ -70,19 +72,81 @@ export class CachingMinifier extends CachingCompiler {
     return result;
   }
 
+  // Your subclass must override this method to handle minifing a single file.
+  // Your minifier should not call minifyOneFile directly
+  // Instead, it should call minifyFile.
+  //
+  // Given an InputFile (the data type passed to processFilesForBundle as part
+  // of the Plugin.registerMinifier API), compiles the file and returns the
+  // result.
+  //
+  // This method is not called on files when a valid cache entry exists in
+  // memory or on disk.
+  //
+  // This method should not call `inputFile.addJavaScript`!
+  // That should be handled in processFilesForBundle
   minifyOneFile () {
     throw new Error('CachingMinifier subclass should implement minifyOneFile!');
   }
 
-  // Overrides method to log errors and
-  // to use the sync fs calls since Meteor 1.8.2
-  // changed the async versions to be aliases to the sync version. 
-  //
-  // We want to write the file atomically. But we also don't want to block
-  // processing on the file write.
-  _writeFileAsync(filename, contents) {
+  compileResultSize(result) {
+    let sourceMapSize = 0;
+
+    if (typeof result.sourcemap === 'string') {
+      sourceMapSize = result.sourcemap.length;
+    } else {
+      sourceMapSize = this.sourceMapSize(result.sourcemap);
+    }
+
+    return result.code ? result.code.length + sourceMapSize : 0;
+  }
+
+  // The following methods were copied from CachingMinifier
+  // and modified to be compatible with a wider range
+  // of Meteor versions
+
+  _cacheFilename(cacheKey) {
+    // We want cacheKeys to be hex so that they work on any FS and never end in
+    // .cache.
+    if (!/^[a-f0-9]+$/.test(cacheKey)) {
+      throw Error('bad cacheKey: ' + cacheKey);
+    }
+    return path.join(this._diskCache, cacheKey + '.cache');
+  }
+
+  // Returns null if the file does not exist or can't be parsed; otherwise
+  // returns the parsed compileResult in the file.
+  _readAndParseCompileResultOrNull(filename) {
+    const raw = this._readFileOrNull(filename);
+    return this.parseCompileResult(raw);
+  }
+
+  // Load a cache entry from disk. Returns the compileResult object
+  // and loads it into the in-memory cache too.
+  _readCache(cacheKey) {
+    if (!this._diskCache) {
+      return null;
+    }
+    const cacheFilename = this._cacheFilename(cacheKey);
+    const compileResult = this._readAndParseCompileResultOrNull(cacheFilename);
+    if (!compileResult) {
+      return null;
+    }
+    this._cache.set(cacheKey, compileResult);
+    return compileResult;
+  }
+
+  _writeCacheAsync(cacheKey, compileResult) {
+    if (!this._diskCache)
+      return;
+    const cacheFilename = this._cacheFilename(cacheKey);
+    const cacheContents = this.stringifyCompileResult(compileResult);
+    this._writeFile(cacheFilename, cacheContents);
+  }
+
+  // Write the file atomically.
+  _writeFile(filename, contents) {
     const tempFilename = filename + '.tmp.' + Random.id();
-    // Write cache file synchronously when cache debugging enabled.
     try {
       fs.writeFileSync(tempFilename, contents);
       fs.renameSync(tempFilename, filename);

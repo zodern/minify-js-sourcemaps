@@ -1,8 +1,6 @@
-import { extractModuleSizesTree } from "./stats.js";
+import { extractModuleSizesTree, statsEnabled } from "./stats.js";
 var Concat = Npm.require('concat-with-sourcemaps');
 import { CachingMinifier } from "meteor/zodern:caching-minifier"
-
-const STATS_DISABLED = process.env.DISABLE_CLIENT_STATS === 'true'
 
 if (typeof Profile === 'undefined') {
   var Profile = function (label, func) {
@@ -26,7 +24,7 @@ Plugin.registerMinifier({
 class MeteorBabelMinifier extends CachingMinifier {
   constructor() {
     super({
-      minifierName: 'babel-minifier'
+      minifierName: 'fast-minifier'
     })
   }
   minifyOneFile(file) {
@@ -144,8 +142,6 @@ MeteorBabelMinifier.prototype.processFilesForBundle = Profile('processFilesForBu
     stats: Object.create(null)
   };
 
-  // The stats code requires node 8 or newer
-  var statsEnabled = !STATS_DISABLED && parseInt(process.versions.node.split('.')[0], 10) > 4;
   var concat = new Concat(true, '', '\n\n');
 
   files.forEach(file => {

@@ -8,13 +8,13 @@ Package.describe({
 
 Npm.depends({
   'lru-cache': '5.1.1'
-})
+});
 
 Package.onUse(function(api) {
   api.use('isobuild:minifier-plugin@1.0.0');
-  api.use('ecmascript@0.7.0')
-  api.use('caching-compiler@1.2.1')
-  api.use('random@1.0.9')
+  api.use('ecmascript@0.7.0');
+  api.use('caching-compiler@1.1.7');
+  api.use('random@1.0.9');
   api.mainModule('caching-minifier.js', 'server');
   api.export('CachingMinifier', 'server');
 });

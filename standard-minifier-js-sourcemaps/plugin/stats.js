@@ -1,3 +1,5 @@
+export const statsEnabled = process.env.DISABLE_CLIENT_STATS !== 'true'
+
 import Visitor from "reify/lib/visitor.js";
 import { findPossibleIndexes } from "reify/lib/utils.js";
 
