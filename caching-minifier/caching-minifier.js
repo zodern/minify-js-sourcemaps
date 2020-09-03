@@ -1,22 +1,15 @@
 import { Random } from 'meteor/random';
 const fs = Plugin.fs;
 
-let Profile;
-try {
-  var path = Npm.require("path");
-  var mainModule = global.process.mainModule;
-
-  var absPath = mainModule.filename.split(path.sep).slice(0, -1).
-    join(path.sep);
-  var require = function (filePath) {
-    return mainModule.require(path.resolve(absPath, filePath));
-  };
-
-  Profile = require("./tool-env/profile").Profile;
-} catch (e) {
-  console.log('failed to load Profiler', e);
-  Profile = function (label, func) { return function () { return func.apply(this, arguments); } };
-  Profile.time = function (label, func) { func(); };
+if (typeof Profile === 'undefined') {
+  var Profile = function (label, func) {
+    return function () {
+      return func.apply(this, arguments);
+    }
+  }
+  Profile.time = function (label, func) {
+    func();
+  }
 }
 
 export class CachingMinifier extends CachingCompiler {
