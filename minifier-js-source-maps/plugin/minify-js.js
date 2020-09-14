@@ -19,11 +19,10 @@ meteorJsMinify = function (source, sourcemap, path) {
           "process.env.NODE_ENV": NODE_ENV
         }
       },
-      mangle: {
-        // Fix issue meteor/meteor#9866, as explained in this comment:
-        // https://github.com/mishoo/UglifyJS2/issues/1753#issuecomment-324814782
-        safari10: true
-      },
+      // Fix issue meteor/meteor#9866, as explained in this comment:
+      // https://github.com/mishoo/UglifyJS2/issues/1753#issuecomment-324814782
+      // And fix terser issue #117: https://github.com/terser-js/terser/issues/117
+      safari10: true,
       sourceMap: {
         content: sourcemap
       }
@@ -41,11 +40,14 @@ meteorJsMinify = function (source, sourcemap, path) {
     // Although Babel.minify can handle a wider variety of ECMAScript
     // 2015+ syntax, it is substantially slower than UglifyJS/terser, so
     // we use it only as a fallback.
-    var babelResult = Babel.minify(source, {
-      sourceMaps: true,
-      inputSourceMap: sourcemap,
-      sourceFileName: path
+    var options = Babel.getMinifierOptions({
+      inlineNodeEnv: NODE_ENV
     });
+    options.sourceMaps = true;
+    options.inputSourceMap = sourcemap;
+    options.sourceFileName = path;
+
+    var babelResult = Babel.minify(source, options);
 
     result.code = babelResult.code;
     result.sourcemap = babelResult.map;

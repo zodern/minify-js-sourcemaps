@@ -1,5 +1,17 @@
-import { extractModuleSizesTree } from "./stats.js";
+import { extractModuleSizesTree, statsEnabled } from "./stats.js";
 var Concat = Npm.require('concat-with-sourcemaps');
+import { CachingMinifier } from "meteor/zodern:caching-minifier"
+
+if (typeof Profile === 'undefined') {
+  var Profile = function (label, func) {
+    return function () {
+      return func.apply(this, arguments);
+    }
+  }
+  Profile.time = function (label, func) {
+    func();
+  }
+}
 
 Plugin.registerMinifier({
   extensions: ['js'],
@@ -9,9 +21,22 @@ Plugin.registerMinifier({
   return minifier;
 });
 
-function MeteorBabelMinifier () {};
+class MeteorBabelMinifier extends CachingMinifier {
+  constructor() {
+    super({
+      minifierName: 'fast-minifier'
+    })
+  }
+  minifyOneFile(file) {
+    return meteorJsMinify(
+      file.getContentsAsString(),
+      file.getSourceMap(),
+      file.getPathInBundle()
+    );
+  }
+}
 
-MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
+MeteorBabelMinifier.prototype.processFilesForBundle = Profile('processFilesForBundle', function(files, options) {
   var mode = options.minifyMode;
 
   // don't minify anything for development
@@ -117,8 +142,6 @@ MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
     stats: Object.create(null)
   };
 
-  // The stats code requires node 8 or newer
-  var statsEnabled = parseInt(process.versions.node.split('.')[0], 10) > 4;
   var concat = new Concat(true, '', '\n\n');
 
   files.forEach(file => {
@@ -131,13 +154,18 @@ MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
       });
     } else {
       var minified;
+      let label = 'minify file'
+      if (file.getPathInBundle() === 'app/app.js') {
+        label = 'minify app/app.js'
+      }
+      if (file.getPathInBundle() === 'packages/modules.js') {
+        label = 'minify packages/modules.js'
+      }
 
       try {
-        minified = meteorJsMinify(
-          file.getContentsAsString(),
-          file.getSourceMap(),
-          file.getPathInBundle()
-        );
+        Profile.time(label, () => {
+          minified = this.minifyFile(file);
+        });
 
         if (!(minified && typeof minified.code === "string")) {
           throw new Error();
@@ -153,7 +181,11 @@ MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
       }
 
       if (statsEnabled) {
-        const tree = extractModuleSizesTree(minified.code);
+        let tree;
+        Profile.time('extractModuleSizesTree', () => {
+          tree = extractModuleSizesTree(minified.code);
+        });
+
         if (tree) {
           toBeAdded.stats[file.getPathInBundle()] =
             [Buffer.byteLength(minified.code), tree];
@@ -172,14 +204,18 @@ MeteorBabelMinifier.prototype.processFilesForBundle = function(files, options) {
     Plugin.nudge();
   });
 
-  minifiedResults.forEach(function (result) {
-    concat.add(result.file, result.code, result.map);
-    Plugin.nudge();
-  });
+  Profile.time('concat', () => {
+    minifiedResults.forEach(function (result) {
+      concat.add(result.file, result.code, result.map);
+      Plugin.nudge();
+    });
+  })
 
   if (files.length) {
-    toBeAdded.data = concat.content.toString();
-    toBeAdded.sourceMap = concat.sourceMap;
-    files[0].addJavaScript(toBeAdded);
+    Profile.time('addJavaScript', () => {
+      toBeAdded.data = concat.content.toString();
+      toBeAdded.sourceMap = concat.sourceMap;
+      files[0].addJavaScript(toBeAdded);
+    })
   }
-};
+});

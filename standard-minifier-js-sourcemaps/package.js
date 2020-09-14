@@ -1,26 +1,26 @@
 Package.describe({
   name: 'zodern:standard-minifier-js',
-  version: '3.0.0',
-  summary: 'Javascript minifier that creates production sourcemap',
+  version: '4.0.0-beta.6',
+  summary: 'Fast javascript minifier that creates production sourcemap',
   documentation: '../readme.md',
   git: 'https://github.com/zodern/minify-js-sourcemaps.git'
 });
 
 Package.registerBuildPlugin({
-  name: 'minifyStdJS',
+  name: 'fastMinifier',
   use: [
-    'zodern:minifier-js@3.0.0',
+    'zodern:minifier-js@4.0.0',
     'babel-compiler@6.18.2 || 7.0.0',
-    'ecmascript@0.7.0'
+    'ecmascript@0.7.0',
+    'zodern:caching-minifier@0.4.0'
   ],
   sources: [
     'plugin/minify-js.js',
     'plugin/stats.js',
-    'plugin/visitor.js',
     'plugin/utils.js',
   ],
   npmDependencies: {
-    'concat-with-sourcemaps': '1.0.4'
+    'concat-with-sourcemaps': '1.1.0',
   }
 });
 

@@ -2,7 +2,7 @@ babel-compiler@7.3.4
 babel-runtime@1.3.0
 caching-compiler@1.2.1
 dynamic-import@0.5.1
-ecmascript@0.12.4
+ecmascript@0.12.7
 ecmascript-runtime@0.7.0
 ecmascript-runtime-client@0.8.0
 ecmascript-runtime-server@0.7.1
@@ -15,5 +15,3 @@ modules-runtime@0.10.3
 promise@0.11.2
 random@1.1.0
 zodern:caching-minifier@0.1.0
-zodern:minifier-js@3.0.0
-zodern:standard-minifier-js@4.0.0-beta.1
