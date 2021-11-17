@@ -16,8 +16,7 @@ Package.registerBuildPlugin({
   ],
   sources: [
     'plugin/minify-js.js',
-    'plugin/stats.js',
-    'plugin/utils.js',
+    'plugin/stats.js'
   ],
   npmDependencies: {
     'concat-with-sourcemaps': '1.1.0',
