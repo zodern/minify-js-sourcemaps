@@ -24,6 +24,7 @@ meteorJsMinify = function (source, sourcemap, path) {
       // And fix terser issue #117: https://github.com/terser-js/terser/issues/117
       safari10: true,
       sourceMap: {
+        includeSources: true,
         content: sourcemap
       }
     });
