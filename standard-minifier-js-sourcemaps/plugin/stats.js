@@ -1,20 +1,8 @@
+import Visitor from "@meteorjs/reify/lib/visitor.js";
+import { findPossibleIndexes } from "@meteorjs/reify/lib/utils.js";
+import { Babel } from "meteor/babel-compiler";
+
 export const statsEnabled = process.env.DISABLE_CLIENT_STATS !== 'true'
-
-let Visitor;
-let findPossibleIndexes;
-
-try {
-  import _Visitor from "reify/lib/visitor.js";
-  Visitor = _Visitor;
-
-  ({ findPossibleIndexes } = require("reify/lib/utils.js"));
-} catch (e) {
-  // Meteor 2.5.2 switched from reify to @meteorjs/reify
-  import _Visitor from "@meteorjs/reify/lib/visitor.js";
-  Visitor = _Visitor;
-
-  ({ findPossibleIndexes } = require("@meteorjs/reify/lib/utils.js"));
-}
 
 // This RegExp will be used to scan the source for calls to meteorInstall,
 // taking into consideration that the function name may have been mangled
@@ -90,15 +78,15 @@ const meteorInstallVisitor = new (class extends Visitor {
 
 function hasIdWithName(node, name) {
   switch (node && node.type) {
-    case "SequenceExpression":
-      const last = node.expressions[node.expressions.length - 1];
-      return hasIdWithName(last, name);
-    case "MemberExpression":
-      return hasIdWithName(node.property, name);
-    case "Identifier":
-      return node.name === name;
-    default:
-      return false;
+  case "SequenceExpression":
+    const last = node.expressions[node.expressions.length - 1];
+    return hasIdWithName(last, name);
+  case "MemberExpression":
+    return hasIdWithName(node.property, name);
+  case "Identifier":
+    return node.name === name;
+  default:
+    return false;
   }
 }
 
@@ -108,7 +96,7 @@ function getKeyName(key) {
   }
 
   if (key.type === "StringLiteral" ||
-    key.type === "Literal") {
+      key.type === "Literal") {
     return key.value;
   }
 
