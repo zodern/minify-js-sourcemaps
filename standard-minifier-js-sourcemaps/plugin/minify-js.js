@@ -1,15 +1,21 @@
 import { extractModuleSizesTree, statsEnabled } from "./stats.js";
 var Concat = Npm.require('concat-with-sourcemaps');
 import { CachingMinifier } from "meteor/zodern:caching-minifier"
+let swc = require('meteor-package-install-swc');
 
 if (typeof Profile === 'undefined') {
-  var Profile = function (label, func) {
-    return function () {
-      return func.apply(this, arguments);
+  console.log('no profile', Plugin.Profile);
+  if (Plugin.Profile) {
+    Profile = Plugin.Profile;
+  } else {
+    Profile = function (label, func) {
+      return function () {
+        return func.apply(this, arguments);
+      }
     }
-  }
-  Profile.time = function (label, func) {
-    func();
+    Profile.time = function (label, func) {
+      func();
+    }
   }
 }
 
@@ -28,15 +34,42 @@ class MeteorBabelMinifier extends CachingMinifier {
     })
   }
   minifyOneFile(file) {
-    return meteorJsMinify(
+    const NODE_ENV = process.env.NODE_ENV || 'development';
+    let map = file.getSourceMap();
+
+    if (map) {
+      map = JSON.stringify(map);
+    }
+
+
+    let result = swc.minifySync(
       file.getContentsAsString(),
-      file.getSourceMap(),
-      file.getPathInBundle()
+      {
+        compress: {
+          drop_debugger: false,
+
+          unused: false,
+          dead_code: true,
+          typeofs: false,
+
+          global_defs: {
+            'process.env.NODE_ENV': NODE_ENV,
+          },
+        },
+        sourceMap: map ? {
+          content: map,
+
+        } : undefined,
+        safari10: true,
+        inlineSourcesContent: true
+      }
     );
+
+    return result;
   }
 }
 
-MeteorBabelMinifier.prototype.processFilesForBundle = Profile('processFilesForBundle', function(files, options) {
+MeteorBabelMinifier.prototype.processFilesForBundle = Profile('processFilesForBundle', function (files, options) {
   var mode = options.minifyMode;
 
   // don't minify anything for development
@@ -49,91 +82,6 @@ MeteorBabelMinifier.prototype.processFilesForBundle = Profile('processFilesForBu
       });
     });
     return;
-  }
-
-  function maybeThrowMinifyErrorBySourceFile(error, file) {
-    var minifierErrorRegex = /^(.*?)\s?\((\d+):(\d+)\)$/;
-    var parseError = minifierErrorRegex.exec(error.message);
-
-    if (!parseError) {
-      // If we were unable to parse it, just let the usual error handling work.
-      return;
-    }
-
-    var lineErrorMessage = parseError[1];
-    var lineErrorLineNumber = parseError[2];
-
-    var parseErrorContentIndex = lineErrorLineNumber - 1;
-
-    // Unlikely, since we have a multi-line fixed header in this file.
-    if (parseErrorContentIndex < 0) {
-      return;
-    }
-
-    /*
-
-    What we're parsing looks like this:
-
-    /////////////////////////////////////////
-    //                                     //
-    // path/to/file.js                     //
-    //                                     //
-    /////////////////////////////////////////
-                                           // 1
-       var illegalECMAScript = true;       // 2
-                                           // 3
-    /////////////////////////////////////////
-
-    Btw, the above code is intentionally not newer ECMAScript so
-    we don't break ourselves.
-
-    */
-
-    var contents = file.getContentsAsString().split(/\n/);
-    var lineContent = contents[parseErrorContentIndex];
-
-    // Try to grab the line number, which sometimes doesn't exist on
-    // line, abnormally-long lines in a larger block.
-    var lineSrcLineParts = /^(.*?)(?:\s*\/\/ (\d+))?$/.exec(lineContent);
-
-    // The line didn't match at all?  Let's just not try.
-    if (!lineSrcLineParts) {
-      return;
-    }
-
-    var lineSrcLineContent = lineSrcLineParts[1];
-    var lineSrcLineNumber = lineSrcLineParts[2];
-
-    // Count backward from the failed line to find the filename.
-    for (var c = parseErrorContentIndex - 1; c >= 0; c--) {
-      var sourceLine = contents[c];
-
-      // If the line is a boatload of slashes, we're in the right place.
-      if (/^\/\/\/{6,}$/.test(sourceLine)) {
-
-        // If 4 lines back is the same exact line, we've found the framing.
-        if (contents[c - 4] === sourceLine) {
-
-          // So in that case, 2 lines back is the file path.
-          var parseErrorPath = contents[c - 2]
-            .substring(3)
-            .replace(/\s+\/\//, "");
-
-          var minError = new Error(
-            "Babili minification error " +
-            "within " + file.getPathInBundle() + ":\n" +
-            parseErrorPath +
-            (lineSrcLineNumber ? ", line " + lineSrcLineNumber : "") + "\n" +
-            "\n" +
-            lineErrorMessage + ":\n" +
-            "\n" +
-            lineSrcLineContent + "\n"
-          );
-
-          throw minError;
-        }
-      }
-    }
   }
 
   const minifiedResults = [];
@@ -174,7 +122,7 @@ MeteorBabelMinifier.prototype.processFilesForBundle = Profile('processFilesForBu
       } catch (err) {
         var filePath = file.getPathInBundle();
 
-        maybeThrowMinifyErrorBySourceFile(err, file);
+        // TODO: improve error handling
 
         err.message += " while minifying " + filePath;
         throw err;
@@ -198,9 +146,10 @@ MeteorBabelMinifier.prototype.processFilesForBundle = Profile('processFilesForBu
       minifiedResults.push({
         file: file.getPathInBundle(),
         code: minified.code,
-        map: minified.sourcemap
+        map: minified.map
       });
     }
+
     Plugin.nudge();
   });
 
