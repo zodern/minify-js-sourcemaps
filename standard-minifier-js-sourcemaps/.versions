@@ -16,4 +16,4 @@ promise@0.12.2
 random@1.2.1
 react-fast-refresh@0.2.7
 zodern:caching-minifier@0.4.0
-zodern:standard-minifier-js@5.0.0-beta.2
+zodern:standard-minifier-js@5.0.0-beta.3
