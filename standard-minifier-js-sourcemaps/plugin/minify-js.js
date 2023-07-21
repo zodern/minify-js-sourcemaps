@@ -1,7 +1,9 @@
-import { extractModuleSizesTree, statsEnabled } from "./stats.js";
+const { extractModuleSizesTree } = require("./stats.js");
 var Concat = Npm.require('concat-with-sourcemaps');
-import { CachingMinifier } from "meteor/zodern:caching-minifier"
+const { CachingMinifier } = require("meteor/zodern:caching-minifier");
 let swc = require('meteor-package-install-swc');
+
+const statsEnabled = process.env.DISABLE_CLIENT_STATS !== 'true'
 
 if (typeof Profile === 'undefined') {
   if (Plugin.Profile) {

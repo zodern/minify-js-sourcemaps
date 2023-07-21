@@ -9,9 +9,7 @@ Package.describe({
 Package.registerBuildPlugin({
   name: 'fastMinifier',
   use: [
-    // 'zodern:minifier-js@4.1.0',
-    'babel-compiler@6.18.2 || 7.0.0',
-    'ecmascript@0.7.0',
+    'modules@0.19.0',
     'zodern:caching-minifier@0.4.0'
   ],
   sources: [
@@ -21,7 +19,8 @@ Package.registerBuildPlugin({
   npmDependencies: {
     'meteor-package-install-swc': '1.0.1',
     'concat-with-sourcemaps': '1.1.0',
-    'acorn': '8.10.0'
+    'acorn': '8.10.0',
+    '@babel/parser': '7.22.7'
   }
 });
 
