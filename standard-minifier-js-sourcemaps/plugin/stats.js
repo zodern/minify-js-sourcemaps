@@ -2,6 +2,7 @@ export const statsEnabled = process.env.DISABLE_CLIENT_STATS !== 'true'
 
 let Visitor;
 let findPossibleIndexes;
+let acorn = require('acorn');
 
 try {
   import _Visitor from "reify/lib/visitor.js";
@@ -36,7 +37,21 @@ const meteorInstallRegExp = new RegExp([
 export function extractModuleSizesTree(source) {
   const match = meteorInstallRegExp.exec(source);
   if (match) {
-    const ast = Babel.parse(source);
+    let ast;
+    try {
+      ast = acorn.parse(source, {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        allowAwaitOutsideFunction: true,
+        allowImportExportEverywhere: true,
+        allowReturnOutsideFunction: true,
+        allowHashBang: true,
+        checkPrivateFields: false
+      });
+    } catch (error) {
+      console.log(`Error while parsing with acorn. Falling back to babel minifier. ${error}`);
+      ast = Babel.parse(source);
+    }
     let meteorInstallName = "meteorInstall";
     // The minifier may have renamed meteorInstall to something shorter.
     match.some((name, i) => (i > 0 && (meteorInstallName = name)));
