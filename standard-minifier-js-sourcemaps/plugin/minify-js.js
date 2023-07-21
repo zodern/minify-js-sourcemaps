@@ -4,7 +4,6 @@ import { CachingMinifier } from "meteor/zodern:caching-minifier"
 let swc = require('meteor-package-install-swc');
 
 if (typeof Profile === 'undefined') {
-  console.log('no profile', Plugin.Profile);
   if (Plugin.Profile) {
     Profile = Plugin.Profile;
   } else {
