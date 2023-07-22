@@ -9,8 +9,8 @@ Package.describe({
 Package.registerBuildPlugin({
   name: 'fastMinifier',
   use: [
-    'modules@0.19.0',
-    'zodern:caching-minifier@0.4.0'
+    'modules@0.7.5',
+    'zodern:caching-minifier@0.5.0'
   ],
   sources: [
     'plugin/minify-js.js',
