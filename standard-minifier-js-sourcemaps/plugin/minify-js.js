@@ -1,7 +1,6 @@
 const { extractModuleSizesTree } = require("./stats.js");
 var Concat = Npm.require('concat-with-sourcemaps');
 const { CachingMinifier } = require("meteor/zodern:caching-minifier");
-let swc = require('meteor-package-install-swc');
 
 const statsEnabled = process.env.DISABLE_CLIENT_STATS !== 'true'
 
@@ -20,6 +19,8 @@ if (typeof Profile === 'undefined') {
   }
 }
 
+let swc;
+
 Plugin.registerMinifier({
   extensions: ['js'],
   archMatching: 'web'
@@ -34,7 +35,9 @@ class MeteorBabelMinifier extends CachingMinifier {
       minifierName: 'fast-minifier'
     })
   }
-  minifyOneFile(file) {
+
+  _minifyWithSwc(file) {
+    swc = swc || require('meteor-package-install-swc'); 
     const NODE_ENV = process.env.NODE_ENV || 'development';
     let map = file.getSourceMap();
 
@@ -42,8 +45,7 @@ class MeteorBabelMinifier extends CachingMinifier {
       map = JSON.stringify(map);
     }
 
-
-    let result = swc.minifySync(
+    return swc.minifySync(
       file.getContentsAsString(),
       {
         compress: {
@@ -65,8 +67,44 @@ class MeteorBabelMinifier extends CachingMinifier {
         inlineSourcesContent: true
       }
     );
+  }
 
-    return result;
+  _minifyWithTerser(file) {
+    let terser = require('terser');
+    const NODE_ENV = process.env.NODE_ENV || 'development';
+
+    return terser.minify(file.getContentsAsString(), {
+      compress: {
+        drop_debugger: false,
+        unused: false,
+        dead_code: true,
+        global_defs: {
+          "process.env.NODE_ENV": NODE_ENV
+        }
+      },
+      // Fix issue meteor/meteor#9866, as explained in this comment:
+      // https://github.com/mishoo/UglifyJS2/issues/1753#issuecomment-324814782
+      // And fix terser issue #117: https://github.com/terser-js/terser/issues/117
+      safari10: true,
+      sourceMap: {
+        content: file.getSourceMap()
+      }
+    });
+  }
+
+  minifyOneFile(file) {
+    try {
+      return this._minifyWithSwc(file);
+    } catch (swcError) {
+      try {
+        // swc always parses as if the file is a module, which is
+        // too strict for some Meteor packages. Try again with terser
+        return this._minifyWithTerser(file).await();
+      } catch (_) {
+        // swc has a much better error message, so we use it
+        throw swcError;
+      }
+    }
   }
 }
 
@@ -122,8 +160,6 @@ MeteorBabelMinifier.prototype.processFilesForBundle = Profile('processFilesForBu
 
       } catch (err) {
         var filePath = file.getPathInBundle();
-
-        // TODO: improve error handling
 
         err.message += " while minifying " + filePath;
         throw err;
