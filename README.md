@@ -6,7 +6,7 @@ Features:
 
 - Creates production source maps
 - Very fast by using disk and memory caches
-- Compatible with Meteor 1.6 and newer. For Meteor 1.4 - 1.5, use `zodern:standard-minifier-js@3.0.0` for production source maps.
+- Compatible with Meteor 1.9 and newer. For Meteor 1.4 - 1.5, use `zodern:standard-minifier-js@3.0.0` for production source maps, and for Meteor 1.6 - 1.8 use `zodern:standard-minifier-js@4.1.1`.
 - Generates bundle stats for [bundle-visualizer](https://atmospherejs.com/meteor/bundle-visualizer)
 
 First, you need to remove `standard-minifier-js` from your app
@@ -39,6 +39,6 @@ When deploying from CI, you will need to configure the CI to cache at least part
 
 ## Environment Variables
 
-`DISABLE_CLIENT_STATS` Set to `true` to disable creating the `stats.json` file used by the bundle-visualizer. This can save up to 20+ seconds during production builds for large apps.
+`DISABLE_CLIENT_STATS` Set to `true` to disable creating the `stats.json` file used by the bundle-visualizer. This can save a few seconds during production builds for large apps.
 
 `METEOR_FASTMINIFIER_CACHE_DEBUG` Set to `true` to view the cache logs
