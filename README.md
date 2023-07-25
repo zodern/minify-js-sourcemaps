@@ -5,6 +5,7 @@ Fast javascript minifier for Meteor apps that creates source maps
 Features:
 
 - Creates production source maps
+- Creates source maps for Meteor packages that don't use a compiler
 - Very fast by using the swc minifier, a faster js parser, and disk and memory caches
 - Compatible with Meteor 1.9 and newer. For Meteor 1.4 - 1.5, use `zodern:standard-minifier-js@3.0.0` for production source maps, and for Meteor 1.6 - 1.8 use `zodern:standard-minifier-js@4.1.1`.
 - Generates bundle stats for [bundle-visualizer](https://atmospherejs.com/meteor/bundle-visualizer)
