@@ -1,7 +1,7 @@
 const { extractModuleSizesTree } = require("./stats.js");
-var Concat = Npm.require('concat-with-sourcemaps');
 const { CachingMinifier } = require("meteor/zodern:caching-minifier");
 const generatePackageMap = require('./generate-package-map.js');
+const { CombinedFile } = require('@zodern/source-maps');
 
 const statsEnabled = process.env.DISABLE_CLIENT_STATS !== 'true'
 
@@ -137,7 +137,7 @@ MeteorBabelMinifier.prototype.processFilesForBundle = Profile('processFilesForBu
     stats: Object.create(null)
   };
 
-  var concat = new Concat(true, '', '\n\n');
+  var combinedFile = new CombinedFile();
 
   files.forEach(file => {
     // Don't reminify *.min.js.
@@ -198,18 +198,27 @@ MeteorBabelMinifier.prototype.processFilesForBundle = Profile('processFilesForBu
     Plugin.nudge();
   });
 
+  let output;
   Profile.time('concat', () => {
-    minifiedResults.forEach(function (result) {
-      concat.add(result.file, result.code, result.map);
+    minifiedResults.forEach(function (result, index) {
+      if (index > 0) {
+        combinedFile.addGeneratedCode('\n\n');
+      }
+
+      let map = JSON.parse(result.map);
+      combinedFile.addCodeWithMap(result.file, { code: result.code, map });
+
       Plugin.nudge();
     });
-  })
+
+    output = combinedFile.build();
+  });
 
   if (files.length) {
     Profile.time('addJavaScript', () => {
-      toBeAdded.data = concat.content.toString();
-      toBeAdded.sourceMap = concat.sourceMap;
+      toBeAdded.data = output.code;
+      toBeAdded.sourceMap = output.map;
       files[0].addJavaScript(toBeAdded);
-    })
+    });
   }
 });
