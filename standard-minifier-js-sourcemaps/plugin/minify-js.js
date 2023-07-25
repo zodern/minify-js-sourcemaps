@@ -122,9 +122,14 @@ MeteorBabelMinifier.prototype.processFilesForBundle = Profile('processFilesForBu
   // don't minify anything for development
   if (mode === 'development') {
     files.forEach(function (file) {
+      let map = file.getSourceMap();
+      if (!map) {
+        map = generatePackageMap(file.getContentsAsString(), file.getPathInBundle());
+      }
+
       file.addJavaScript({
         data: file.getContentsAsBuffer(),
-        sourceMap: file.getSourceMap(),
+        sourceMap: map,
         path: file.getPathInBundle(),
       });
     });
