@@ -44,9 +44,9 @@
       }
     },
     "@zodern/source-maps": {
-      "version": "1.1.0",
-      "resolved": "https://registry.npmjs.org/@zodern/source-maps/-/source-maps-1.1.0.tgz",
-      "integrity": "sha512-zL5y9JOEikKUL4c5dyMKUwevOPd6yQhmhIt9hloOeW8m+VjVRAR/SZH7UdB1hqgJ2tFTWaVjzHN9MpTMiryGsw=="
+      "version": "1.1.1",
+      "resolved": "https://registry.npmjs.org/@zodern/source-maps/-/source-maps-1.1.1.tgz",
+      "integrity": "sha512-LLdfrsMyiszk5f0jqZPWuZHAZhhIed66aYVGBI1Y8XuZ+5DnNV0AmTh+/Ib7xEbfWJuyhz69LKmcxdE/hQXsLA=="
     },
     "acorn": {
       "version": "8.10.0",
