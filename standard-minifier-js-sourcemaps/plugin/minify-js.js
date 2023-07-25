@@ -1,6 +1,7 @@
 const { extractModuleSizesTree } = require("./stats.js");
 var Concat = Npm.require('concat-with-sourcemaps');
 const { CachingMinifier } = require("meteor/zodern:caching-minifier");
+const generatePackageMap = require('./generate-package-map.js');
 
 const statsEnabled = process.env.DISABLE_CLIENT_STATS !== 'true'
 
@@ -39,15 +40,22 @@ class MeteorBabelMinifier extends CachingMinifier {
   _minifyWithSwc(file) {
     swc = swc || require('meteor-package-install-swc'); 
     const NODE_ENV = process.env.NODE_ENV || 'development';
+
     let map = file.getSourceMap();
+    let content = file.getContentsAsString();
+
+    if (!map) {
+      map = generatePackageMap(content, file.getPathInBundle());
+    }
 
     if (map) {
       map = JSON.stringify(map);
     }
 
     return swc.minifySync(
-      file.getContentsAsString(),
+      content,
       {
+        ecma: 5,
         compress: {
           drop_debugger: false,
 

@@ -21,7 +21,8 @@ Package.registerBuildPlugin({
     'concat-with-sourcemaps': '1.1.0',
     'acorn': '8.10.0',
     '@babel/parser': '7.22.7',
-    'terser': '5.19.2'
+    'terser': '5.19.2',
+    '@zodern/source-maps': '1.1.0'
   }
 });
 
