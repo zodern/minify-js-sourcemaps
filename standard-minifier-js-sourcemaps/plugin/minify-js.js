@@ -1,17 +1,26 @@
-import { extractModuleSizesTree, statsEnabled } from "./stats.js";
-var Concat = Npm.require('concat-with-sourcemaps');
-import { CachingMinifier } from "meteor/zodern:caching-minifier"
+const { extractModuleSizesTree } = require("./stats.js");
+const { CachingMinifier } = require("meteor/zodern:caching-minifier");
+const generatePackageMap = require('./generate-package-map.js');
+const { CombinedFile } = require('@zodern/source-maps');
+
+const statsEnabled = process.env.DISABLE_CLIENT_STATS !== 'true'
 
 if (typeof Profile === 'undefined') {
-  var Profile = function (label, func) {
-    return function () {
-      return func.apply(this, arguments);
+  if (Plugin.Profile) {
+    Profile = Plugin.Profile;
+  } else {
+    Profile = function (label, func) {
+      return function () {
+        return func.apply(this, arguments);
+      }
+    }
+    Profile.time = function (label, func) {
+      func();
     }
   }
-  Profile.time = function (label, func) {
-    func();
-  }
 }
+
+let swc;
 
 Plugin.registerMinifier({
   extensions: ['js'],
@@ -27,113 +36,104 @@ class MeteorBabelMinifier extends CachingMinifier {
       minifierName: 'fast-minifier'
     })
   }
-  minifyOneFile(file) {
-    return meteorJsMinify(
-      file.getContentsAsString(),
-      file.getSourceMap(),
-      file.getPathInBundle()
+
+  _minifyWithSwc(file) {
+    swc = swc || require('meteor-package-install-swc'); 
+    const NODE_ENV = process.env.NODE_ENV || 'development';
+
+    let map = file.getSourceMap();
+    let content = file.getContentsAsString();
+
+    if (!map) {
+      map = generatePackageMap(content, file.getPathInBundle());
+    }
+
+    if (map) {
+      map = JSON.stringify(map);
+    }
+
+    return swc.minifySync(
+      content,
+      {
+        ecma: 5,
+        compress: {
+          drop_debugger: false,
+
+          unused: false,
+          dead_code: true,
+          typeofs: false,
+
+          global_defs: {
+            'process.env.NODE_ENV': NODE_ENV,
+          },
+        },
+        sourceMap: map ? {
+          content: map,
+
+        } : undefined,
+        safari10: true,
+        inlineSourcesContent: true
+      }
     );
+  }
+
+  _minifyWithTerser(file) {
+    let terser = require('terser');
+    const NODE_ENV = process.env.NODE_ENV || 'development';
+
+    return terser.minify(file.getContentsAsString(), {
+      compress: {
+        drop_debugger: false,
+        unused: false,
+        dead_code: true,
+        global_defs: {
+          "process.env.NODE_ENV": NODE_ENV
+        }
+      },
+      // Fix issue meteor/meteor#9866, as explained in this comment:
+      // https://github.com/mishoo/UglifyJS2/issues/1753#issuecomment-324814782
+      // And fix terser issue #117: https://github.com/terser-js/terser/issues/117
+      safari10: true,
+      sourceMap: {
+        content: file.getSourceMap()
+      }
+    });
+  }
+
+  minifyOneFile(file) {
+    try {
+      return this._minifyWithSwc(file);
+    } catch (swcError) {
+      try {
+        // swc always parses as if the file is a module, which is
+        // too strict for some Meteor packages. Try again with terser
+        return this._minifyWithTerser(file).await();
+      } catch (_) {
+        // swc has a much better error message, so we use it
+        throw swcError;
+      }
+    }
   }
 }
 
-MeteorBabelMinifier.prototype.processFilesForBundle = Profile('processFilesForBundle', function(files, options) {
+MeteorBabelMinifier.prototype.processFilesForBundle = Profile('processFilesForBundle', function (files, options) {
   var mode = options.minifyMode;
 
   // don't minify anything for development
   if (mode === 'development') {
     files.forEach(function (file) {
+      let map = file.getSourceMap();
+      if (!map) {
+        map = generatePackageMap(file.getContentsAsString(), file.getPathInBundle());
+      }
+
       file.addJavaScript({
         data: file.getContentsAsBuffer(),
-        sourceMap: file.getSourceMap(),
+        sourceMap: map,
         path: file.getPathInBundle(),
       });
     });
     return;
-  }
-
-  function maybeThrowMinifyErrorBySourceFile(error, file) {
-    var minifierErrorRegex = /^(.*?)\s?\((\d+):(\d+)\)$/;
-    var parseError = minifierErrorRegex.exec(error.message);
-
-    if (!parseError) {
-      // If we were unable to parse it, just let the usual error handling work.
-      return;
-    }
-
-    var lineErrorMessage = parseError[1];
-    var lineErrorLineNumber = parseError[2];
-
-    var parseErrorContentIndex = lineErrorLineNumber - 1;
-
-    // Unlikely, since we have a multi-line fixed header in this file.
-    if (parseErrorContentIndex < 0) {
-      return;
-    }
-
-    /*
-
-    What we're parsing looks like this:
-
-    /////////////////////////////////////////
-    //                                     //
-    // path/to/file.js                     //
-    //                                     //
-    /////////////////////////////////////////
-                                           // 1
-       var illegalECMAScript = true;       // 2
-                                           // 3
-    /////////////////////////////////////////
-
-    Btw, the above code is intentionally not newer ECMAScript so
-    we don't break ourselves.
-
-    */
-
-    var contents = file.getContentsAsString().split(/\n/);
-    var lineContent = contents[parseErrorContentIndex];
-
-    // Try to grab the line number, which sometimes doesn't exist on
-    // line, abnormally-long lines in a larger block.
-    var lineSrcLineParts = /^(.*?)(?:\s*\/\/ (\d+))?$/.exec(lineContent);
-
-    // The line didn't match at all?  Let's just not try.
-    if (!lineSrcLineParts) {
-      return;
-    }
-
-    var lineSrcLineContent = lineSrcLineParts[1];
-    var lineSrcLineNumber = lineSrcLineParts[2];
-
-    // Count backward from the failed line to find the filename.
-    for (var c = parseErrorContentIndex - 1; c >= 0; c--) {
-      var sourceLine = contents[c];
-
-      // If the line is a boatload of slashes, we're in the right place.
-      if (/^\/\/\/{6,}$/.test(sourceLine)) {
-
-        // If 4 lines back is the same exact line, we've found the framing.
-        if (contents[c - 4] === sourceLine) {
-
-          // So in that case, 2 lines back is the file path.
-          var parseErrorPath = contents[c - 2]
-            .substring(3)
-            .replace(/\s+\/\//, "");
-
-          var minError = new Error(
-            "Babili minification error " +
-            "within " + file.getPathInBundle() + ":\n" +
-            parseErrorPath +
-            (lineSrcLineNumber ? ", line " + lineSrcLineNumber : "") + "\n" +
-            "\n" +
-            lineErrorMessage + ":\n" +
-            "\n" +
-            lineSrcLineContent + "\n"
-          );
-
-          throw minError;
-        }
-      }
-    }
   }
 
   const minifiedResults = [];
@@ -142,7 +142,7 @@ MeteorBabelMinifier.prototype.processFilesForBundle = Profile('processFilesForBu
     stats: Object.create(null)
   };
 
-  var concat = new Concat(true, '', '\n\n');
+  var combinedFile = new CombinedFile();
 
   files.forEach(file => {
     // Don't reminify *.min.js.
@@ -174,8 +174,6 @@ MeteorBabelMinifier.prototype.processFilesForBundle = Profile('processFilesForBu
       } catch (err) {
         var filePath = file.getPathInBundle();
 
-        maybeThrowMinifyErrorBySourceFile(err, file);
-
         err.message += " while minifying " + filePath;
         throw err;
       }
@@ -198,24 +196,34 @@ MeteorBabelMinifier.prototype.processFilesForBundle = Profile('processFilesForBu
       minifiedResults.push({
         file: file.getPathInBundle(),
         code: minified.code,
-        map: minified.sourcemap
+        map: minified.map
       });
     }
+
     Plugin.nudge();
   });
 
+  let output;
   Profile.time('concat', () => {
-    minifiedResults.forEach(function (result) {
-      concat.add(result.file, result.code, result.map);
+    minifiedResults.forEach(function (result, index) {
+      if (index > 0) {
+        combinedFile.addGeneratedCode('\n\n');
+      }
+
+      let map = JSON.parse(result.map);
+      combinedFile.addCodeWithMap(result.file, { code: result.code, map });
+
       Plugin.nudge();
     });
-  })
+
+    output = combinedFile.build();
+  });
 
   if (files.length) {
     Profile.time('addJavaScript', () => {
-      toBeAdded.data = concat.content.toString();
-      toBeAdded.sourceMap = concat.sourceMap;
+      toBeAdded.data = output.code;
+      toBeAdded.sourceMap = output.map;
       files[0].addJavaScript(toBeAdded);
-    })
+    });
   }
 });

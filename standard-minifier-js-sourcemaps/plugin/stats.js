@@ -1,16 +1,15 @@
-export const statsEnabled = process.env.DISABLE_CLIENT_STATS !== 'true'
-
 let Visitor;
 let findPossibleIndexes;
+let acorn = require('acorn');
 
 try {
-  import _Visitor from "reify/lib/visitor.js";
+  const _Visitor = require("reify/lib/visitor.js");
   Visitor = _Visitor;
 
   ({ findPossibleIndexes } = require("reify/lib/utils.js"));
 } catch (e) {
   // Meteor 2.5.2 switched from reify to @meteorjs/reify
-  import _Visitor from "@meteorjs/reify/lib/visitor.js";
+  const _Visitor = require("@meteorjs/reify/lib/visitor.js");
   Visitor = _Visitor;
 
   ({ findPossibleIndexes } = require("@meteorjs/reify/lib/utils.js"));
@@ -33,10 +32,36 @@ const meteorInstallRegExp = new RegExp([
   /\(0,Package\["modules-runtime"\]\.(meteorInstall)\)\(/,
 ].map(exp => exp.source).join("|"));
 
-export function extractModuleSizesTree(source) {
+module.exports.extractModuleSizesTree = function extractModuleSizesTree(source) {
   const match = meteorInstallRegExp.exec(source);
   if (match) {
-    const ast = Babel.parse(source);
+    let ast;
+    try {
+      ast = acorn.parse(source, {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        allowAwaitOutsideFunction: true,
+        allowImportExportEverywhere: true,
+        allowReturnOutsideFunction: true,
+        allowHashBang: true,
+        checkPrivateFields: false
+      });
+    } catch (error) {
+      console.log(`Error while parsing with acorn. Falling back to babel minifier. ${error}`);
+      ast = require('@babel/parser').parse(source, {
+        strictMode: false,
+        sourceType: 'module',
+        allowImportExportEverywhere: true,
+        allowReturnOutsideFunction: true,
+        allowUndeclaredExports: true,
+        plugins: [
+          // Only plugins for stage 3 features are enabled
+          'importAttributes',
+          'explicitResourceManagement',
+          'decorators'
+        ]
+      });
+    }
     let meteorInstallName = "meteorInstall";
     // The minifier may have renamed meteorInstall to something shorter.
     match.some((name, i) => (i > 0 && (meteorInstallName = name)));

@@ -1,5 +1,6 @@
-import { Random } from 'meteor/random';
 const LRU = Npm.require('lru-cache');
+const CachingCompilerBase = require('./caching-compiler');
+const crypto = require("crypto");
 
 const fs = Plugin.fs;
 const path = Plugin.path;
@@ -15,9 +16,7 @@ if (typeof Profile === 'undefined') {
   }
 }
 
-const CachingCompilerBase = Object.getPrototypeOf(CachingCompiler);
-
-export class CachingMinifier extends CachingCompilerBase {
+module.exports.CachingMinifier = class CachingMinifier extends CachingCompilerBase {
   constructor({
     minifierName,
     defaultCacheSize,
@@ -146,7 +145,8 @@ export class CachingMinifier extends CachingCompilerBase {
 
   // Write the file atomically.
   _writeFile(filename, contents) {
-    const tempFilename = filename + '.tmp.' + Random.id();
+    const randomId = crypto.randomBytes(16).toString("hex");
+    const tempFilename = filename + '.tmp.' + randomId;
     try {
       fs.writeFileSync(tempFilename, contents);
       fs.renameSync(tempFilename, filename);
