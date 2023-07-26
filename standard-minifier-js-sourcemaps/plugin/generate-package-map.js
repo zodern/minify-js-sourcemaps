@@ -5,7 +5,7 @@ const SourceMap = require('@zodern/source-maps');
 
 const headerRegex = /\(function\(\){\n\n\/*$\s\/\/\s*\/\/\s\/\/\s(packages\/.*)$\s\/\/\s*\/\/\s\/\/*\s\s*\/\/\n/gm;
 const pathRegex = /\/\/\s(packages\/.*)\/\//g;
-const footerRegex = /^\s\/{14,}\s\s}\).call\(this\);\s\s/gm;
+const footerRegex = /^\/{14,}\s\s}\).call\(this\);\s\s/gm;
 
 // TODO: use start index
 function countLinesTo(content, index) {
