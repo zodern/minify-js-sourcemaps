@@ -69,7 +69,6 @@ class MeteorBabelMinifier extends CachingMinifier {
         },
         sourceMap: map ? {
           content: map,
-
         } : undefined,
         safari10: true,
         inlineSourcesContent: true
@@ -208,6 +207,11 @@ MeteorBabelMinifier.prototype.processFilesForBundle = Profile('processFilesForBu
     minifiedResults.forEach(function (result, index) {
       if (index > 0) {
         combinedFile.addGeneratedCode('\n\n');
+      }
+
+      if (!result.map) {
+        console.log('');
+        console.log('WARNING: minifier is missing sourcemap for', result.file);
       }
 
       let map = JSON.parse(result.map);
