@@ -209,12 +209,12 @@ MeteorBabelMinifier.prototype.processFilesForBundle = Profile('processFilesForBu
         combinedFile.addGeneratedCode('\n\n');
       }
 
-      if (!result.map) {
-        console.log('');
-        console.log('WARNING: minifier is missing sourcemap for', result.file);
+      let map = result.map;
+
+      if (typeof map === 'string') {
+        map = JSON.parse(result.map);
       }
 
-      let map = JSON.parse(result.map);
       combinedFile.addCodeWithMap(result.file, { code: result.code, map });
 
       Plugin.nudge();
