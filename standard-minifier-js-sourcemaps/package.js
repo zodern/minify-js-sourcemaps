@@ -17,7 +17,7 @@ Package.registerBuildPlugin({
     'plugin/stats.js'
   ],
   npmDependencies: {
-    'meteor-package-install-swc': '1.0.1',
+    'meteor-package-install-swc': '1.1.0',
     'acorn': '8.10.0',
     '@babel/parser': '7.22.7',
     'terser': '5.19.2',
