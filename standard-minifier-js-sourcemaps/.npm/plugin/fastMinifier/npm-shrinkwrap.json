@@ -12,9 +12,9 @@
       "integrity": "sha512-HLhSWOLRi875zjjMG/r+Nv0oCW8umGb0BgEhyX3dDX3egwZtB8PqLnjz3yedt8R5StBrzcg4aBpnh8UA9D1BoQ=="
     },
     "@jridgewell/resolve-uri": {
-      "version": "3.1.0",
-      "resolved": "https://registry.npmjs.org/@jridgewell/resolve-uri/-/resolve-uri-3.1.0.tgz",
-      "integrity": "sha512-F2msla3tad+Mfht5cJq7LSXcdudKTWCVYUgw6pLFOOHSTtZlj6SWNYAp+AhuqLmWdBO2X5hPrLcu8cVP8fy28w=="
+      "version": "3.1.1",
+      "resolved": "https://registry.npmjs.org/@jridgewell/resolve-uri/-/resolve-uri-3.1.1.tgz",
+      "integrity": "sha512-dSYZh7HhCDtCKm4QakX0xFpsRDqjjtZf/kjI/v3T3Nwt5r8/qz/M19F9ySyOqU94SXBmeG9ttTul+YnR4LOxFA=="
     },
     "@jridgewell/set-array": {
       "version": "1.1.2",
@@ -32,16 +32,9 @@
       "integrity": "sha512-eF2rxCRulEKXHTRiDrDy6erMYWqNw4LPdQ8UQA4huuxaQsVeRPFl2oM8oDGxMFhJUWZf9McpLtJasDDZb/Bpeg=="
     },
     "@jridgewell/trace-mapping": {
-      "version": "0.3.18",
-      "resolved": "https://registry.npmjs.org/@jridgewell/trace-mapping/-/trace-mapping-0.3.18.tgz",
-      "integrity": "sha512-w+niJYzMHdd7USdiH2U6869nqhD2nbfZXND5Yp93qIbEmnDNk7PD48o+YchRVpzMU7M6jVCbenTR7PA1FLQ9pA==",
-      "dependencies": {
-        "@jridgewell/sourcemap-codec": {
-          "version": "1.4.14",
-          "resolved": "https://registry.npmjs.org/@jridgewell/sourcemap-codec/-/sourcemap-codec-1.4.14.tgz",
-          "integrity": "sha512-XPSJHWmi394fuUuzDnGz1wiKqWfo1yXecHQMRf2l6hztTO+nPru658AyDngaBe7isIxEkRsPR3FZh+s7iVa4Uw=="
-        }
-      }
+      "version": "0.3.20",
+      "resolved": "https://registry.npmjs.org/@jridgewell/trace-mapping/-/trace-mapping-0.3.20.tgz",
+      "integrity": "sha512-R8LcPeWZol2zR8mmH3JeKQ6QRCFb7XgUhV9ZlGhHLGyg4wpPiPZNQOOWhFZhxKw8u//yTbNGI42Bx/3paXEQ+Q=="
     },
     "@zodern/source-maps": {
       "version": "1.1.1",
@@ -63,15 +56,10 @@
       "resolved": "https://registry.npmjs.org/commander/-/commander-2.20.3.tgz",
       "integrity": "sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ=="
     },
-    "concat-with-sourcemaps": {
-      "version": "1.1.0",
-      "resolved": "https://registry.npmjs.org/concat-with-sourcemaps/-/concat-with-sourcemaps-1.1.0.tgz",
-      "integrity": "sha512-4gEjHJFT9e+2W/77h/DS5SGUgwDaOwprX8L/gl5+3ixnzkVJJsZWDSelmN3Oilw3LNDZjZV0yqH1hLG3k6nghg=="
-    },
     "meteor-package-install-swc": {
-      "version": "1.0.1",
-      "resolved": "https://registry.npmjs.org/meteor-package-install-swc/-/meteor-package-install-swc-1.0.1.tgz",
-      "integrity": "sha512-mONUe6mS2FoWH/FpWpjzhRqEbBOBvx13r9flh3bVZviPRSffDBpjLCfmhVJrQZ841N+wpGswsv2KmXCIezOHOA=="
+      "version": "1.1.1",
+      "resolved": "https://registry.npmjs.org/meteor-package-install-swc/-/meteor-package-install-swc-1.1.1.tgz",
+      "integrity": "sha512-Lptj3yMNTztldRc5/XiKNAT41usWD2ic6TJp/PpFcNhkTFM8NcNcOxBV+QbKSaRJBbGxTQixCSSI/YRpub+HYA=="
     },
     "source-map": {
       "version": "0.6.1",
