@@ -20,3 +20,25 @@ if (process.env.EXPOSE_SOURCE_MAPS !== 'true') {
 } else {
   console.warn('Source maps are not hidden since the env var EXPOSE_SOURCE_MAPS is set to "true"');
 }
+
+const middleware = (request, response, next) => {
+  if (request.method === "POST") {
+    const chunks = [];
+    request.on("data", chunk => chunks.push(chunk));
+    request.on("end", () => {
+      try {
+        const body = JSON.stringify(JSON.parse(Buffer.concat(chunks).toString()))
+        if (body.toLowerCase().includes(".map\""))
+          response.destroy();
+      } catch (e) {
+        response.destroy();
+      }
+    });
+  }
+  next();
+}
+
+WebAppInternals.meteorInternalHandlers.use(
+  "/__meteor__/dynamic-import/fetch",
+  middleware
+);
