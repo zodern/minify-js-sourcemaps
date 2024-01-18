@@ -39,7 +39,7 @@ module.exports.extractModuleSizesTree = function extractModuleSizesTree(source) 
     try {
       ast = acorn.parse(source, {
         ecmaVersion: 'latest',
-        sourceType: 'module',
+        sourceType: 'script',
         allowAwaitOutsideFunction: true,
         allowImportExportEverywhere: true,
         allowReturnOutsideFunction: true,
@@ -50,7 +50,7 @@ module.exports.extractModuleSizesTree = function extractModuleSizesTree(source) 
       console.log(`Error while parsing with acorn. Falling back to babel minifier. ${error}`);
       ast = require('@babel/parser').parse(source, {
         strictMode: false,
-        sourceType: 'module',
+        sourceType: 'script',
         allowImportExportEverywhere: true,
         allowReturnOutsideFunction: true,
         allowUndeclaredExports: true,
