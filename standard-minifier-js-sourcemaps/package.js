@@ -1,6 +1,6 @@
 Package.describe({
   name: 'zodern:standard-minifier-js',
-  version: '5.2.0',
+  version: '5.3.0',
   summary: 'Fast javascript minifier that creates production sourcemap',
   documentation: '../readme.md',
   git: 'https://github.com/zodern/minify-js-sourcemaps.git'
