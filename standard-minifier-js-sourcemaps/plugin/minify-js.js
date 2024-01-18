@@ -59,7 +59,7 @@ class MeteorBabelMinifier extends CachingMinifier {
         compress: {
           drop_debugger: false,
 
-          unused: false,
+          unused: true,
           dead_code: true,
           typeofs: false,
 
